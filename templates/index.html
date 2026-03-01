@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAHHHMODORO</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #f5f2ee;
+            --surface: #edeae5;
+            --border: #d8d3cb;
+            --text: #1a1917;
+            --muted: #8c8880;
+            --accent: #c1440e;
+            --radius: 12px;
+            --mono: 'DM Mono', monospace;
+            --sans: 'DM Sans', sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #logo {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 36px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 48px 52px 44px;
+            width: min(420px, 92vw);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 44px;
+            width: 100%;
+        }
+
+        .tab {
+            flex: 1;
+            font-family: var(--sans);
+            font-size: 12.5px;
+            font-weight: 500;
+            padding: 7px 0;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+        }
+
+        .tab.active {
+            background: #fff;
+            color: var(--text);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        #timer-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 44px;
+        }
+
+        #display {
+            font-family: var(--mono);
+            font-size: 72px;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        #mode-label {
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin: 8px;
+        }
+
+        #duration-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+        }
+
+        .dur-btn {
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .dur-btn.active,
+        .dur-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #FDF1EC;
+        }
+
+        #controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        #start-btn {
+            flex: 1;
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 13px 0;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+
+        #start-btn:hover {
+            opacity: 0.88;
+        }
+
+        #start-btn:active {
+            transform: scale(0.98);
+        }
+
+        #reset-btn {
+            font-family: var(--sans);
+            font-size: 14px;
+            padding: 13px 18px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s;
+        }
+
+        #reset-btn:hover {
+            border-color: var(--text);
+            color: var(--text);
+        }
+
+        #session-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 28px;
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: background 0.3s;
+        }
+
+        .dot.done {
+            background: var(--accent);
+        }
+
+        #session-label {
+            font-size: 11.5px;
+            color: var(--muted);
+            margin-left: 4px;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--text);
+            color: #fff;
+            font-size: 13px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
+            white-space: nowrap;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <p id="logo">FAHHHMODORO</p>
+
+        <div id="tabs">
+            <button class="tab active" data-mode="focus">Focus</button>
+            <button class="tab" data-mode="short">Short Break</button>
+            <button class="tab" data-mode="long">Long Break</button>
+        </div>
+
+        <div id="timer-wrap">
+            <span id="display">25:00</span>
+            <span id="mode-label">Focus</span>
+        </div>
+
+        <div id="duration-row">
+            <button class="dur-btn active" data-min="25">25 min</button>
+            <button class="dur-btn" data-min="15">15 min</button>
+        </div>
+
+        <div id="controls">
+            <button id="start-btn">Start</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+
+        <div id="session-row">
+            <div class="dot" id="d1"></div>
+            <div class="dot" id="d2"></div>
+            <div class="dot" id="d3"></div>
+            <div class="dot" id="d4"></div>
+            <span id="session-label">Session 1 of 4</span>
+        </div>
+
+        <div id="toast"></div>
+    </div>
+
+    <script>
+        const STATE = {
+            mode: "focus",
+            focusDuration: 25,
+            totalSeconds: 25 * 60,
+            remaining: 25 * 60,
+            running: false,
+            interval: null,
+            sessions: 0,
+        };
+
+        const DURATIONS = {
+            focus: () => STATE.focusDuration * 60,
+            short: () => 5 * 60,
+            long: () => 15 * 60,
+        }
+
+        const MODE_LABELS = {
+            focus: "Focus",
+            short: "Short Break",
+            long: "Long Break"
+        };
+
+        const displayEl = document.getElementById("display");
+        const modeLabelEl = document.getElementById("mode-label");
+        const startBtn = document.getElementById("start-btn");
+        const resetBtn = document.getElementById("reset-btn");
+        const toastEl = document.getElementById("toast");
+        const durationRow = document.getElementById("duration-row");
+        const sessionLabel = document.getElementById("session-label");
+        const dots = [1, 2, 3, 4].map(i => document.getElementById("d" + i));
+
+
+        function fmt(sec) {
+            const m = String(Math.floor(sec / 60)).padStart(2, "0");
+            const s = String(sec % 60).padStart(2, "0");
+            return `${m}:${s}`;
+        }
+
+
+        function render() {
+            displayEl.textContent = fmt(STATE.remaining);
+            modeLabelEl.textContent = MODE_LABELS[STATE.mode];
+            startBtn.textContent = STATE.running ? "Pause" : "Start";
+
+
+            durationRow.style.display = STATE.mode === "focus" ? "flex" : "none";
+
+            dots.forEach((dot, i) => {
+                dot.classList.toggle("done", i < STATE.sessions);
+            });
+
+            sessionLabel.textContent = `Session ${Math.min(STATE.sessions + 1, 4)} of 4`;
+        }
+
+
+        function toast(msg, duration = 3000) {
+            toastEl.textContent = msg;
+            toastEl.classList.add("show");
+            setTimeout(() => toastEl.classList.remove("show"), duration);
+        }
+
+
+
+        function tick() {
+            if (STATE.remaining <= 0) {
+                clearInterval(STATE.interval);
+                STATE.running = false;
+                handleTimerEnd();
+                return;
+            }
+
+            STATE.remaining--;
+            render();
+        }
+
+        function handleTimerEnd() {
+            if (STATE.mode === "focus") {
+                STATE.sessions = Math.min(STATE.sessions + 1, 4);
+                toast("🍅 Focus session done! Take a break.");
+            } else {
+                toast("Break over — time to focus!");
+            }
+            render();
+        }
+
+        function startPause() {
+            if (STATE.running) {
+
+                clearInterval(STATE.interval);
+                STATE.running = false;
+            } else {
+                STATE.running = true;
+                STATE.interval = setInterval(tick, 1000);
+            }
+            render();
+        }
+
+        function reset() {
+            clearInterval(STATE.interval);
+            STATE.running = false;
+            STATE.totalSeconds = DURATIONS[STATE.mode]();
+            STATE.remaining = STATE.totalSeconds;
+            render();
+        }
+
+        startBtn.addEventListener("click", startPause);
+        resetBtn.addEventListener("click", reset);
+
+        document.querySelectorAll(".tab").forEach(btn => {
+            btn.addEventListener("click", () => {
+
+                if (STATE.running) return;
+
+                document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+
+                STATE.mode = btn.dataset.mode;
+                STATE.totalSeconds = DURATIONS[STATE.mode]();
+                STATE.remaining = STATE.totalSeconds;
+                render();
+            });
+        });
+
+        document.querySelectorAll(".dur-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+
+                if (STATE.running) return;
+
+                document.querySelectorAll(".dur-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+
+
+                STATE.focusDuration = parseInt(btn.dataset.min);
+                STATE.totalSeconds = DURATIONS[STATE.mode]();
+                STATE.remaining = STATE.totalSeconds;
+                render();
+            });
+        });
+
+        render();
+
+    </script>
+
+</body>
+
+</html>
