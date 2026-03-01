@@ -13,12 +13,12 @@
 
     <style>
         :root {
-            --bg: #f5f2ee;
-            --surface: #edeae5;
-            --border: #d8d3cb;
+            --bg: #fff;
+            --surface: #a3cda2;
+            --border: #588157;
             --text: #1a1917;
-            --muted: #8c8880;
-            --accent: #c1440e;
+            --muted: #588157;
+            --accent: #344e41;
             --radius: 12px;
             --mono: 'DM Mono', monospace;
             --sans: 'DM Sans', sans-serif;
@@ -44,10 +44,10 @@
 
         #logo {
             font-family: var(--mono);
-            font-size: 11px;
+            font-size: 24px;
             letter-spacing: 0.18em;
             text-transform: uppercase;
-            color: var(--muted);
+            color: var(--accent);
             margin-bottom: 36px;
         }
 
@@ -66,7 +66,7 @@
         #tabs {
             display: flex;
             gap: 6px;
-            background: var(--surface);
+            background: var(--accent);
             border-radius: 8px;
             padding: 4px;
             margin-bottom: 44px;
@@ -82,7 +82,7 @@
             border: none;
             border-radius: 6px;
             background: transparent;
-            color: var(--muted);
+            color: var(--bg);
             cursor: pointer;
             transition: background 0.18s, color 0.18s;
         }
@@ -135,11 +135,10 @@
             transition: all 0.15s;
         }
 
-        .dur-btn.active,
-        .dur-btn:hover {
+        .dur-btn.active {
             border-color: var(--accent);
             color: var(--accent);
-            background: #FDF1EC;
+            background: var(--surface);
         }
 
         #controls {
@@ -280,6 +279,8 @@
             running: false,
             interval: null,
             sessions: 0,
+            alarmSource: null,
+            alarmCtx: null,
         };
 
         const DURATIONS = {
@@ -347,7 +348,40 @@
             render();
         }
 
+        function stopAlarm() {
+            if (STATE.alarmSource) {
+                try {
+                    STATE.alarmSource.stop();
+                    STATE.alarmCtx.close();
+                } catch (e) { }  // ignore if already stopped
+                STATE.alarmSource = null;
+                STATE.alarmCtx = null;
+            }
+        }
+
+        async function playAlarm() {
+            stopAlarm(); // stop any currently playing alarm first
+            try {
+                const res = await fetch("/audio");
+                const buf = await res.arrayBuffer();
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = ctx.createBufferSource();
+                source.buffer = await ctx.decodeAudioData(buf);
+                source.connect(ctx.destination);
+
+                source.loop = true;
+                STATE.alarmSource = source;  // ← save reference
+                STATE.alarmCtx = ctx;     // ← save reference
+                source.start(0);
+
+                setTimeout(() => stopAlarm(), 120000);
+            } catch (e) {
+                console.warn("Audio playback failed:", e);
+            }
+        }
+
         function handleTimerEnd() {
+            playAlarm();
             if (STATE.mode === "focus") {
                 STATE.sessions = Math.min(STATE.sessions + 1, 4);
                 toast("🍅 Focus session done! Take a break.");
@@ -358,6 +392,7 @@
         }
 
         function startPause() {
+            stopAlarm();
             if (STATE.running) {
 
                 clearInterval(STATE.interval);
